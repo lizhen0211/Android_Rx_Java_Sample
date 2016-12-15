@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/activity_main"
+    android:id="@+id/activity_opertaors"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -9,18 +9,19 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="com.example.lz.android_rx_java_sample.MainActivity">
+    tools:context="com.example.lz.android_rx_java_sample.OpertaorsActivity">
 
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="onHelloWorldClick"
-        android:text="Hello world" />
+        android:onClick="onMapClick"
+        android:text="map" />
 
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="onOpertaorsClick"
         android:layout_marginTop="20dp"
-        android:text="Operators" />
+        android:onClick="moreOnMapClick"
+        android:text="More on map() " />
+
 </LinearLayout>

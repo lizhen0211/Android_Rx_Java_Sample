@@ -17,4 +17,9 @@ public class MainActivity extends Activity {
         Intent intent = new Intent(this, HelloWorldActivity.class);
         startActivity(intent);
     }
+
+    public void onOpertaorsClick(View view) {
+        Intent intent = new Intent(this, OpertaorsActivity.class);
+        startActivity(intent);
+    }
 }

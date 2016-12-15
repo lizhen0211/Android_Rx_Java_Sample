@@ -15,7 +15,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".HelloWorldActivity"></activity>
+        <activity android:name=".HelloWorldActivity" />
+        <activity android:name=".OpertaorsActivity"/>
     </application>
 
 </manifest>

@@ -175,6 +175,12 @@ Schedulers.trampoline()：在当前线程中的工作放入队列中排队，并
 
 我们已经在本文中涵盖了很多基础内容，到这里你应该对函数响应式编程如何工作有了很好的认识。请查看并理解本文介绍的工程，它托管在GitHub上面，阅读RxJava文档并检出rxjava-koans工程，以测试驱动的方式掌握函数响应式编程范型。
 
+英文原版博客地址：
+http://blog.danlew.net/2014/09/15/grokking-rxjava-part-1/
+http://blog.danlew.net/2014/09/22/grokking-rxjava-part-2/
+http://blog.danlew.net/2014/10/08/grokking-rxjava-part-3/
+http://blog.danlew.net/2014/10/08/grokking-rxjava-part-4/
+
 转自：https://asce1885.gitbooks.io/android-rd-senior-advanced/content/che_di_le_jie_rxjava_ff08_yi_ff09_ji_chu_zhi_shi.html
 彻底了解RxJava（一）基础知识
 原文链接：http://blog.danlew.net/2014/09/15/grokking-rxjava-part-1/
