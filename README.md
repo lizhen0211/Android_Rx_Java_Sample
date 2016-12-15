@@ -174,3 +174,165 @@ Schedulers.trampoline()：在当前线程中的工作放入队列中排队，并
 下一步
 
 我们已经在本文中涵盖了很多基础内容，到这里你应该对函数响应式编程如何工作有了很好的认识。请查看并理解本文介绍的工程，它托管在GitHub上面，阅读RxJava文档并检出rxjava-koans工程，以测试驱动的方式掌握函数响应式编程范型。
+
+转自：https://asce1885.gitbooks.io/android-rd-senior-advanced/content/che_di_le_jie_rxjava_ff08_yi_ff09_ji_chu_zhi_shi.html
+彻底了解RxJava（一）基础知识
+原文链接：http://blog.danlew.net/2014/09/15/grokking-rxjava-part-1/
+
+RxJava是目前在Android开发者中新兴热门的函数库。唯一的问题是刚开始接触时会感到较难理解。函数响应式编程对于“外面世界”来的开发人员而言是很难理解的，但一旦理解了它，你会感觉真是太棒了。
+
+我将介绍RxJava的一些知识，这系列文章（四部分）的目标是把你领进RxJava的大门。我不会解释所有相关的知识点（我也做不到），我只想引起你对RxJava的兴趣并知道它是如何工作的。
+
+基础知识
+
+响应式代码的基本组成部分是Observables和Subscribers（事实上Observer才是最小的构建块，但实践中使用最多的是Subscriber，因为Subscriber才是和Observables的对应的。）。Observable发送消息，而Subscriber则用于消费消息。
+
+消息的发送是有固定模式的。Observable可以发送任意数量的消息（包括空消息），当消息被成功处理或者出错时，流程结束。Observable会调用它的每个Subscriber的Subscriber.onNext()函数，并最终以Subscriber.onComplete()或者Subscriber.onError()结束。
+
+这看起来像标准的观察者模式， 但不同的一个关键点是：Observables一般只有等到有Subscriber订阅它，才会开始发送消息（术语上讲就是热启动Observable和冷启动Observable。热启动Observable任何时候都会发送消息，即使没有任何观察者监听它。冷启动Observable只有在至少有一个订阅者的时候才会发送消息（我的例子中都是只有一个订阅者）。这个区别对于开始学习RxJava来说并不重要。）。换句话说，如果没有订阅者观察它，那么将不会起什么作用。
+
+Hello, World!
+
+让我们以一个具体例子来实际看看这个框架。首先，我们创建一个基本的Observable：
+
+Observable<String> myObservable = Observable.create(
+    new Observable.OnSubscribe<String>() {
+        @Override
+        public void call(Subscriber<? super String> sub) {
+            sub.onNext("Hello, world!");
+            sub.onCompleted();
+        }
+    }
+);
+我们的Observable发送“Hello,world!”消息然后完成。现在让我们创建Subscriber来消费这个数据：
+
+Subscriber<String> mySubscriber = new Subscriber<String>() {
+    @Override
+    public void onNext(String s) { System.out.println(s); }
+
+    @Override
+    public void onCompleted() { }
+
+    @Override
+    public void onError(Throwable e) { }
+};
+上面代码所做的工作就是打印由Observable发送的字符串。现在我们有了myObservable和mySubscriber，就可以通过subscribe()函数把两者关联起来：
+
+myObservable.subscribe(mySubscriber);
+// Outputs "Hello, world!"
+当订阅完成，myObservable将调用subscriber的onNext()和onComplete()函数，最终mySubscriber打印“Hello, world!”然后终止。
+
+更简洁的代码
+
+上面为了打印“Hello, world!”写了大量的样板代码，目的是为了让你详细了解到底发生了什么。RxJava提供了很多快捷方式来使编码更简单。
+
+首先让我们简化Observable，RxJava为常见任务提供了很多内建的Observable创建函数。在以下这个例子中，Observable.just()发送一个消息然后完成，功能类似上面的代码（严格来说，Observable.just()函数跟我们原来的代码并不完全一致，但在本系列第三部分之前我不会说明原因）：
+
+Observable<String> myObservable =
+    Observable.just("Hello, world!");
+接下来，让我们处理Subscriber不必要的样板代码。如果我们不关心onCompleted()或者onError()的话，那么可以使用一个更简单的类来定义onNext()期间要完成什么功能：
+
+Action1<String> onNextAction = new Action1<String>() {
+    @Override
+    public void call(String s) {
+        System.out.println(s);
+    }
+};
+Actions可以定义Subscriber的每一个部分，Observable.subscribe()函数能够处理一个，两个或者三个Action参数，分别表示onNext()，onError()和onComplete()函数。上面的Subscriber现在如下所示：
+
+myObservable.subscribe(onNextAction, onErrorAction, onCompleteAction);
+然而，现在我们不需要onError()和onComplete()函数，因此只需要第一个参数：
+
+myObservable.subscribe(onNextAction);
+// Outputs "Hello, world!"
+现在，让我们把上面的函数调用链接起来从而去掉临时变量：
+
+Observable.just("Hello, world!")
+    .subscribe(new Action1<String>() {
+        @Override
+        public void call(String s) {
+              System.out.println(s);
+        }
+    });
+最后，我们使用Java 8的lambdas表达式来去掉丑陋的Action1代码：
+
+Observable.just("Hello, world!")
+    .subscribe(s -> System.out.println(s));
+如果你在Android平台上（因此不能使用Java 8），那么我严重推荐使用retrolambda，它将极大的减少代码的冗余度。
+
+变换
+
+让我们来点刺激的。假如我想把我的签名拼接到“Hello, world!的输出中。一个可行的办法是改变Observable：
+
+Observable.just("Hello, world! -Dan")
+    .subscribe(s -> System.out.println(s));
+当你有权限控制Observable时这么做是可行的，但不能保证每次都可以这样，如果你使用的是别人的函数库呢？另外一个可能的问题是：如果项目中在多个地方使用Observable，但只在某个地方需要增加签名，这时怎么办？
+
+我们尝试修改Subscriber如何呢？
+
+Observable.just("Hello, world!")
+    .subscribe(s -> System.out.println(s + " -Dan"));
+这个解决方案也不尽如人意，不过原因不同于上面：我想Subscribers尽可能的轻量级，因为我可能要在主线程中运行它。从更概念化的层面上讲，Subscribers是用于被动响应的，而不是主动发送消息使其他对象发生变化。 如果可以通过某些中间步骤来对上面的“Hello, world!”进行转换，那岂不是很酷？
+
+Operators简介
+
+接下来我们将介绍如何解决消息转换的难题：使用Operators。Operators在消息发送者Observable和消息消费者Subscriber之间起到操纵消息的作用。RxJava拥有大量的opetators，但刚开始最好还是从一小部分开始熟悉。 这种情况下，map() operator可以被用于将已被发送的消息转换成另外一种形式：
+
+Observable.just("Hello, world!")
+    .map(new Func1<String, String>() {
+        @Override
+        public String call(String s) {
+            return s + " -Dan";
+        }
+    })
+    .subscribe(s -> System.out.println(s));
+同样的，我们可以使用Java 8的lambdas表达式来简化代码：
+
+Observable.just("Hello, world!")
+    .map(s -> s + " -Dan")
+    .subscribe(s -> System.out.println(s));
+很酷吧？我们的map() operator本质上是一个用于转换消息对象的Observable。我们可以级联调用任意多个的map()函数，一层一层地将初始消息转换成Subscriber需要的数据形式。
+
+map()更多的解释
+
+map()函数有趣的一点是：它不需要发送和原始的Observable一样的数据类型。假如我的Subscriber不想直接输出原始的字符串，而是想输出原始字符串的hash值：
+
+Observable.just("Hello, world!")
+    .map(new Func1<String, Integer>() {
+        @Override
+        public Integer call(String s) {
+            return s.hashCode();
+        }
+    })
+    .subscribe(i -> System.out.println(Integer.toString(i)));
+有趣的是，我们的原始输入是字符串，但Subscriber最终收到的是Integer类型。同样的，我们可以使用lambdas简化代码如下：
+
+Observable.just("Hello, world!")
+    .map(s -> s.hashCode())
+    .subscribe(i -> System.out.println(Integer.toString(i)));
+正如我前面说过的，我希望Subscriber做尽量少的工作，我们可以把hash值转换成字符串的操作移动到一个新的map()函数中：
+
+Observable.just("Hello, world!")
+    .map(s -> s.hashCode())
+    .map(i -> Integer.toString(i))
+    .subscribe(s -> System.out.println(s));
+你不想瞧瞧这个吗？我们的Observable和Subscriber变回了原来的代码。我们只是在中间添加了一些变换的步骤，我甚至可以把我的签名转换添加回去：
+
+Observable.just("Hello, world!")
+    .map(s -> s + " -Dan")
+    .map(s -> s.hashCode())
+    .map(i -> Integer.toString(i))
+    .subscribe(s -> System.out.println(s));
+那又怎样？
+
+到这里你可能会想“为了得到简单的代码有很多聪明的花招”。确实，这是一个简单的例子，但有两个概念你需要理解：
+
+关键概念＃1：Observable和Subscriber能完成任何事情。
+
+放飞你的想象，任何事情都是可能的。 你的Observable可以是一个数据库查询，Subscriber获得查询结果然后将其显示在屏幕上。你的Observable可以是屏幕上的一个点击，Subscriber响应该事件。你的Observable可以从网络上读取一个字节流，Subscriber将其写入本地磁盘中。 这是一个可以处理任何事情的通用框架。
+
+关键概念＃2：Observable和Subscriber与它们之间的一系列转换步骤是相互独立的。
+
+我们可以在消息发送者Observable和消息消费者Subscriber之间加入任意多个想要的map()函数。这个系统是高度可组合的：它很容易对数据进行操纵。只要operators符合输入输出的数据类型，那么我可以得到一个无穷尽的调用链（好吧，并不是无穷尽的，因为总会到达物理机器的极限的，但你知道我想表达的意思）。
+
+结合两个关键概念，你可以看到一个有极大潜能的系统。然而到这里我们只介绍了一个operator：map()，这严重地限制了我们的可能性。在本系列的第二部分，我们将详细介绍RxJava中大量可用的operators。
