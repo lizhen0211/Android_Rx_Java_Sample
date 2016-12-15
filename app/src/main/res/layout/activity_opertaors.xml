@@ -24,4 +24,32 @@
         android:onClick="moreOnMapClick"
         android:text="More on map() " />
 
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:onClick="onFlatMapClick"
+        android:text="flat map" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:onClick="onFlatMapClick2"
+        android:text="flat map 2" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:onClick="onFilterClick"
+        android:text="filter" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:onClick="onDoNextClick"
+        android:text="doNext" />
+
 </LinearLayout>
